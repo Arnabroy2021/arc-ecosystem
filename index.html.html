@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arc Ecosystem Registry</title>
+<style>
+  :root{
+    --ink:#0B1420;
+    --ink-2:#101C2C;
+    --paper:#F4F1EA;
+    --line:#24384f;
+    --signal:#3DDC97;
+    --signal-dim:#245c46;
+    --amber:#E8A33D;
+    --muted:#7c8ba0;
+    --mono: 'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+    --sans: 'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+  @font-face{
+    font-family:'IBM Plex Mono';
+    src:local('IBM Plex Mono');
+  }
+  header{
+    padding:56px 32px 28px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+    overflow:hidden;
+  }
+  header::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image: repeating-linear-gradient(90deg, rgba(61,220,151,0.05) 0 1px, transparent 1px 120px);
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.18em;
+    color:var(--signal);
+    text-transform:uppercase;
+    margin:0 0 14px;
+  }
+  h1{
+    font-size:clamp(32px,5vw,52px);
+    margin:0 0 12px;
+    font-weight:700;
+    letter-spacing:-0.02em;
+    line-height:1.05;
+  }
+  header p.sub{
+    max-width:640px;
+    color:var(--muted);
+    font-size:15px;
+    line-height:1.6;
+    margin:0;
+  }
+  .ticker{
+    margin-top:26px;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--muted);
+    display:flex;
+    gap:28px;
+    flex-wrap:wrap;
+  }
+  .ticker b{color:var(--paper); font-weight:600;}
+
+  .controls{
+    position:sticky; top:0; z-index:10;
+    background:rgba(11,20,32,0.92);
+    backdrop-filter: blur(6px);
+    border-bottom:1px solid var(--line);
+    padding:18px 32px;
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  #search{
+    flex:1 1 260px;
+    background:var(--ink-2);
+    border:1px solid var(--line);
+    color:var(--paper);
+    font-family:var(--mono);
+    font-size:14px;
+    padding:11px 14px;
+    border-radius:2px;
+    outline:none;
+  }
+  #search::placeholder{color:var(--muted);}
+  #search:focus{border-color:var(--signal);}
+  select#category{
+    background:var(--ink-2);
+    border:1px solid var(--line);
+    color:var(--paper);
+    font-family:var(--mono);
+    font-size:13px;
+    padding:11px 12px;
+    border-radius:2px;
+    outline:none;
+  }
+  #count{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--signal);
+    white-space:nowrap;
+  }
+
+  main{padding:8px 32px 80px;}
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    margin-top:24px;
+  }
+  .card{
+    background:var(--ink);
+    padding:22px 20px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    transition:background .15s ease;
+  }
+  .card:hover{background:var(--ink-2);}
+  .card-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+  }
+  .card h3{
+    margin:0;
+    font-size:17px;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  .idx{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted);
+    padding-top:2px;
+  }
+  .tag{
+    display:inline-block;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--signal);
+    border:1px solid var(--signal-dim);
+    padding:3px 8px;
+    border-radius:2px;
+    width:fit-content;
+  }
+  .desc{
+    color:#c7cedb;
+    font-size:13.5px;
+    line-height:1.5;
+    flex:1;
+  }
+  .card a.visit{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--amber);
+    text-decoration:none;
+    border-top:1px solid var(--line);
+    padding-top:10px;
+    margin-top:4px;
+  }
+  .card a.visit:hover{color:var(--signal);}
+  .card.hidden{display:none;}
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:26px 32px 40px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--muted);
+    line-height:1.7;
+  }
+  footer a{color:var(--muted);}
+  #empty{
+    display:none;
+    padding:60px 0;
+    text-align:center;
+    color:var(--muted);
+    font-family:var(--mono);
+    font-size:13px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">// community-maintained</p>
+  <h1>Arc Ecosystem Registry</h1>
+  <p class="sub">A searchable ledger of the businesses, infrastructure providers, and financial institutions building on Arc — Circle's stablecoin-native Layer-1. Sourced from the official ecosystem listing at arc.io/ecosystem.</p>
+  <div class="ticker">
+    <span><b id="totalCount">0</b> entries logged</span>
+    <span><b id="catCount">0</b> categories</span>
+    <span>last synced <b>Jul 20, 2026</b></span>
+  </div>
+</header>
+
+<div class="controls">
+  <input id="search" type="text" placeholder="Search by name or description...">
+  <select id="category"></select>
+  <span id="count"></span>
+</div>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div id="empty">No entries match that search.</div>
+</main>
+
+<footer>
+  Data sourced and credited to the official Arc Ecosystem directory — <a href="https://www.arc.io/ecosystem" target="_blank">arc.io/ecosystem</a>.
+  This page is an independent, community-built directory and is not an official Circle or Arc product.<br>
+  Have a project to add or a correction to suggest? Post it in the Arc Discord.
+</footer>
+
+<script>
+const projects = [
+["Aave","Open source protocol to create non-custodial liquidity markets to earn interest on supplying and borrowing assets.","Borrow/Lend","https://aave.com/"],
+["Absa","With Absa Digital Banking services, you can open a bank account, get a loan, or sign up for internet banking quickly.","Banks","https://www.absa.co.za/personal/"],
+["Across","Across uses an intent-based design to deliver near-instant transfers.","Crosschain","https://across.to/"],
+["Alchemy","Build and scale apps onchain with Alchemy's RPC APIs, data APIs, and developer tools across 100+ blockchains.","Developer Tools","https://www.alchemy.com"],
+["AllUnity","AllUnity is a regulated e-money institute, building the next generation of digital payments infrastructure.","Stablecoin Issuers","https://allunity.com/"],
+["Auros","Auros Global is a proprietary crypto trading firm delivering institutional liquidity and advanced market making.","Market Makers","https://www.auros.global/"],
+["Avenia","Power your product with real-time, cross-border payment capabilities — from PIX in Brazil to global stablecoin flows.","Stablecoin Issuers","https://avenia.io/"],
+["AWS","Amazon Web Services offers reliable, scalable, and inexpensive cloud computing services.","Infrastructure","https://aws.amazon.com/"],
+["Axelar","Axelar is a decentralized network and development platform securely connecting the world's blockchains.","Crosschain","https://www.axelar.network/"],
+["B2C2","Institutional solutions for asset managers, funds, banks, brokers, exchanges, DATs, fintechs, and crypto projects.","Market Makers","https://www.b2c2.com/"],
+["BDACS (KRW1)","The only institutional-grade digital asset custody service in Korea.","Stablecoin Issuers","https://krw1.kr/"],
+["BitGo","BitGo's prime platform brings trading, financing, collateral management, and settlement into one operational flow.","Custodians","https://www.bitgo.com/"],
+["Bitso / Juno","Invest in crypto, bitcoin, ethereum, and global stocks. Earn yields, send, and receive money securely with Bitso.","Stablecoin Issuers","https://buildwithjuno.com/en-US"],
+["Bitvavo","Bitvavo enables you to earn passive returns on your crypto.","CEXs","https://bitvavo.com/en"],
+["BlackRock","BlackRock is the world's largest asset manager and a fiduciary, providing investment and risk management.","Tokenized Assets","https://www.blackrock.com/us/individual"],
+["Blockdaemon","Trusted by 400+ institutions to launch, secure, and scale digital asset products across custody and tokenization.","Analytics","https://www.blockdaemon.com/"],
+["Blockradar","Blockradar enables fast, low-cost money transfers for individuals across borders with stablecoins.","Payments","https://blockradar.co"],
+["Blockscout","Blockscout is an open-source block explorer available for all EVM-based chains.","RPC Providers","https://www.blockscout.com/"],
+["BNY","BNY is a global financial services platforms company at the heart of the world's capital markets.","Banks","https://www.bny.com/corporate/global/en.html"],
+["Brex","Simplify expense management with Brex's finance platform.","Fintechs","https://www.brex.com/"],
+["Bridge","A stablecoin platform built for developers. Enable quick, easy, and cost-effective global money movement.","Infrastructure","https://www.bridge.xyz/"],
+["Bron","Bron is a non-custodial wallet that lets you lose devices, passwords, and backups.","Wallet Services","https://bron.org/"],
+["BTG Pactual","BTG Pactual is a federally chartered bank offering banking, investment, credit, mortgage, and cross-border services.","Banks","https://www.btgpactual.us/"],
+["Bybit","Crypto trading experience elevated. Buy, sell, trade BTC, altcoins & NFTs.","CEXs","https://www.bybit.com/en"],
+["Careem","Careem makes it easier to move around, order food and groceries, manage payments, and more.","Fintechs","https://www.careem.com/"],
+["Catena Labs","Catena is the banking and governance platform for AI agents that supports payments, treasury, and other services.","Financial Services","https://catenalabs.com/"],
+["Centrifuge","Centrifuge is the platform for tokenized real-world assets, providing infrastructure to tokenize, manage, and invest.","Tokenized Assets","https://centrifuge.io/"],
+["CFi","Trade forex, stocks, indices, commodities, ETFs and more with CFI.","Trading","https://www.cfi.ag/"],
+["Chainalysis","Chainalysis combines blockchain data and AI to help government agencies, crypto businesses, and financial institutions.","Analytics","https://www.chainalysis.com/"],
+["Chainlink","Chainlink is a leading decentralized oracle network that acts as crucial infrastructure for the blockchain industry.","Oracles","https://chain.link/"],
+["Chronicle Labs","Chronicle Labs provides cost-efficient, decentralized, and verifiable blockchain oracles — secure data feeds for Web3.","Oracles","https://chroniclelabs.org/"],
+["Cloudflare","One platform for your apps, agents, and workforce. Build, secure, and scale without managing infrastructure.","Infrastructure","https://www.cloudflare.com/"],
+["Coinbase","Coinbase is a secure online platform for buying, selling, transferring, and storing cryptocurrency.","CEXs","https://www.coinbase.com/"],
+["Coincheck","Buy and sell cryptocurrency for as little as 500 JPY 24/7. Transfer and deposit funds instantly.","CEXs","https://coincheck.com/"],
+["Commerzbank","Commerzbank is the leading bank for the German Mittelstand and a strong partner for around 24,000 corporate client groups.","Banks","https://www.commerzbank.de/group/"],
+["Copper","Copper is a digital asset infrastructure provider offering custody, prime services, and collateral management.","Custodians","https://copper.co/en"],
+["Copperx","Accept stablecoin payments, open financial accounts, and send money globally with Copperx.","PSPs","http://copperx.io/"],
+["Corpay","Corpay gives you the tools to move money securely and stay confident in every transaction.","Payments","https://www.corpay.com/"],
+["Crossmint","All-in-one stablecoin infrastructure for enterprises.","Infrastructure","https://www.crossmint.com/"],
+["Cumberland","Cumberland provides deep, dependable liquidity in cryptoassets.","Market Makers","https://www.cumberland.io/"],
+["Curve","Curve Finance is a decentralized exchange (DEX) specifically optimized for swapping assets with similar values.","DEXs","https://www.curve.finance/"],
+["Deutsche Bank","Deutsche Bank is one of the world's leading financial services providers.","Banks","https://www.db.com/"],
+["dLocal","dLocal simplifies cross-border payments in emerging markets.","Payments","https://www.dlocal.com/"],
+["Dromos Labs","Dromos Labs builds decentralized systems and infrastructure that give users greater stake and control in the new economy.","Infrastructure","https://dromos.xyz/"],
+["dRPC","dRPC provides modular RPC solutions to launch, scale, and monitor your blockchain data infrastructure.","RPC Providers","https://drpc.org/"],
+["Dynamic","Dynamic combines authentication, smart wallets, and secure key management into one flexible SDK.","Developer Tools","https://www.dynamic.xyz/"],
+["EBANX","EBANX leads in providing alternative payment methods like digital wallets, instant payments, mobile money, and vouchers.","Payments","https://www.ebanx.com/"],
+["Elliptic","Blockchain analytics for financial crime risk management and regulatory compliance in crypto and digital assets.","Analytics","https://www.elliptic.co/"],
+["Emirates NBD","Experience tailored banking services with Emirates NBD, one of the UAE's top banks.","Banks","https://www.emiratesnbd.com/en"],
+["Exodus","Exodus makes it easy to buy and sell crypto using your credit or debit card, bank account, Apple Pay, or Google Pay.","Wallet Services","https://www.exodus.com"],
+["Fireblocks","Fireblocks offers enterprise-grade digital asset and stablecoin infrastructure that powers financial possibility.","Custodians","https://fireblocks.com/"],
+["First Abu Dhabi Bank","First Abu Dhabi Bank provides corporate and institutional products and services to large corporate, investment-grade clients.","Banks","https://www.bankfab.com/en-ae/personal"],
+["FIS","FIS is fintech for bold ideas — the financial technology that transforms how we live, work and play.","Financial Services","https://www.fisglobal.com/"],
+["Fluid","Fluid makes lending and borrowing on DeFi easier, safer, and more efficient.","Borrow/Lend","https://fluid.io/"],
+["Forte AUD","AUDF provides simple, fast, cost-effective access to cryptocurrency via a digital asset pegged to the Australian dollar.","Stablecoin Issuers","https://www.forteaud.com/"],
+["Forte Securities","Forte Securities is an independent and global financial group offering brokerage, custody and asset management.","Financial Services","https://fortesecurities.com/"],
+["Fun.xyz","Fun offers high-converting rails to execute blockchain actions — optimize funding rails, reach new customers, and more.","Developer Tools","http://fun.xyz"],
+["Galaxy","Galaxy is a global leader in digital assets and AI infrastructure, serving institutions, startups, protocols, and investors.","Financial Services","https://www.galaxy.com/"],
+["GetLiquid","GetLiquid standardizes how private credit transactions are structured, funded, tracked, and managed.","Tokenized Assets","https://www.getliquid.io/"],
+["Goldman Sachs","The Goldman Sachs Group is a leading global investment banking, securities, and asset and wealth management firm.","Banks","https://www.goldmansachs.com/"],
+["Hashkey","HashKey Global is licensed by the Bermuda Monetary Authority (BMA), ensuring a secure and compliant trading environment.","CEXs","https://www.hashkey.com/en-US/"],
+["Hecto Financial","Hecto Financial Co., Ltd., a fintech company, provides fintech platform services in South Korea.","Fintechs","https://www.hectogroup.com/"],
+["Hecto Innovation","Hecto Innovation Co., Ltd. operates as an IT platform company in the field of information security, primarily in Korea.","Infrastructure","https://www.hectogroup.com/"],
+["Hibachi","Hibachi is building a stablecoin-native FX exchange where currencies trade on a live orderbook with transparent pricing.","Trading","https://hibachi.xyz/"],
+["HSBC","A British universal bank and financial services group headquartered in London, England.","Banks","https://www.us.hsbc.com/"],
+["Hurupay","Get a USD and EUR bank account with your name to receive or send money globally with Hurupay.","PSPs","https://www.hurupay.com/"],
+["JPYC","JPYC is a stablecoin linked to the Japanese yen, which can be used to purchase NFTs or exchange crypto assets for goods.","Stablecoin Issuers","https://corporate.jpyc.co.jp/en"],
+["Keyrock","Keyrock has been boosting digital assets with tailored liquidity solutions since 2017.","Market Makers","https://keyrock.com/"],
+["Kraken","Own the power of your money with Kraken. Trade crypto, stocks, futures, staking and more.","CEXs","https://www.kraken.com/"],
+["Kyobo Life","Kyobo provides optimum insurance coverage and on-going services.","Financial Services","https://www.kyobo.com/dgt/web/company-introduction/en-main"],
+["LayerZero","LayerZero builds technology that makes decentralization possible, scalable, and inevitable.","Crosschain","http://layerzero.network/"],
+["Ledger","Ledger empowers you to build your portfolio: buy, swap, stake, spend with the simplicity of exchanges and security of a signer.","Wallet Services","https://www.ledger.com/"],
+["LianLian","Enjoy a seamless and secure cross-border payment experience with LianLian Global.","Payments","https://lianlianglobal.com/en"],
+["Maple","Maple is an onchain asset manager with decades of traditional finance and crypto experience.","Financial Services","https://maple.finance/"],
+["Mastercard","Mastercard is an American multinational payment card services corporation.","Payments","https://www.mastercard.com/us/en.html"],
+["Mercoin","Mercoin creates products that help people unleash their potential, empowering them to create and circulate value.","Fintechs","https://about.mercoin.com/en/"],
+["MetaMask","MetaMask is a secure and flexible crypto wallet, trusted by millions of users to buy, sell, and swap digital assets.","Wallet Services","https://metamask.io/"],
+["Morpho","Morpho is an open credit network that connects lenders and borrowers to the best possible opportunities worldwide.","Borrow/Lend","https://morpho.org/"],
+["Noah","Noah provides a unified API to easily integrate stablecoin payments into your platform.","PSPs","https://noah.io/"],
+["Nuvei","Nuvei unifies pay-ins, payouts, and data on one intelligent platform.","Payments","https://www.nuvei.com/"],
+["Ormi Labs","Ormi gives high-throughput Web3 apps access to real-time and historical data at sub-second latency.","Analytics","https://ormilabs.com/"],
+["Pairpoint by Vodafone","Pairpoint enables IoT devices to securely connect, transact, and communicate autonomously using SIM and blockchain tech.","Infrastructure","https://pairpoint.io/"],
+["Paysafe","Paysafe has a payment solution for every business, helping companies of all sizes accept payments securely.","Payments","https://www.paysafe.com"],
+["PhotonPay","Simplify your global business payment with PhotonPay: global accounts, multi-currency cards, online payments, embedded finance.","Payments","https://www.photonpay.com/"],
+["Pimlico","Pimlico is an account abstraction infrastructure platform powering Ethereum's transition to ERC-4337 smart accounts.","Developer Tools","https://www.pimlico.io/"],
+["Privy","Privy powers the complete wallet stack — from key management to user onboarding.","Wallet Services","https://www.privy.io/"],
+["QuickNode","QuickNode's global network delivers real-time blockchain data with unmatched speed, reliability, and uptime.","RPC Providers","https://www.quicknode.com/"],
+["Rainbow","Explore NFTs and DeFi on Ethereum, Polygon, Optimism, Arbitrum, BSC, Base, and Zora with Rainbow.","Wallet Services","https://rainbow.me/en-us/"],
+["Ramp","Make expense management easy with Ramp's spend management platform.","Fintechs","https://www.ramp.com"],
+["Ramp Network","Ramp Network enables seamless crypto buying, selling, and swapping directly within apps or wallets with KYC verification.","Payments","https://rampnetwork.com/"],
+["RedStone","RedStone powers onchain data for DeFi protocols, RWA platforms, and asset managers.","Oracles","https://www.redstone.finance/"],
+["Robinhood","Robinhood is a financial services company providing a trading platform for stocks, ETFs, and more.","CEXs","https://robinhood.com"],
+["Sasai Fintech","Sasai is a fintech and platform service provider empowering businesses to grow through simplified payment solutions.","Fintechs","https://sasaifintech.com/"],
+["SBI Holdings","SBI Holdings is a financial services company group based in Tokyo, Japan.","Financial Services","https://www.sbigroup.co.jp/english/"],
+["Standard Chartered (SCB)","A global bank connecting corporate, institutional and affluent clients to sustainable growth opportunities.","Banks","https://www.sc.com/en/"],
+["Securitize","Securitize is a leader in tokenizing real-world assets.","Tokenized Assets","https://securitize.io/"],
+["Sequence","Sequence is modular crypto infrastructure that unifies wallets, 1-click cross-chain payments, and real-time data layers.","Infrastructure","https://sequence.xyz/"],
+["Societe Generale","A European leader in financial services for over 150 years.","Banks","https://www.societegenerale.com/en"],
+["Stablecorp","Stablecorp is a leading Canadian fintech firm building digital money infrastructure to support the global payments space.","Stablecoin Issuers","https://www.stablecorp.ca/"]
+];
+
+const grid = document.getElementById('grid');
+const searchInput = document.getElementById('search');
+const catSelect = document.getElementById('category');
+const countEl = document.getElementById('count');
+const emptyEl = document.getElementById('empty');
+
+const categories = [...new Set(projects.map(p => p[2]))].sort();
+document.getElementById('totalCount').textContent = projects.length;
+document.getElementById('catCount').textContent = categories.length;
+
+catSelect.innerHTML = '<option value="">All categories</option>' +
+  categories.map(c => `<option value="${c}">${c}</option>`).join('');
+
+function render(){
+  const q = searchInput.value.trim().toLowerCase();
+  const cat = catSelect.value;
+  let shown = 0;
+  grid.innerHTML = '';
+  projects.forEach((p, i) => {
+    const [name, desc, category, url] = p;
+    const matchesQ = !q || name.toLowerCase().includes(q) || desc.toLowerCase().includes(q);
+    const matchesCat = !cat || category === cat;
+    if(matchesQ && matchesCat){
+      shown++;
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-top">
+          <h3>${name}</h3>
+          <span class="idx">${String(i+1).padStart(3,'0')}</span>
+        </div>
+        <span class="tag">${category}</span>
+        <p class="desc">${desc}</p>
+        <a class="visit" href="${url}" target="_blank" rel="noopener">Visit ↗</a>
+      `;
+      grid.appendChild(card);
+    }
+  });
+  countEl.textContent = `Showing ${shown} / ${projects.length}`;
+  emptyEl.style.display = shown === 0 ? 'block' : 'none';
+}
+
+searchInput.addEventListener('input', render);
+catSelect.addEventListener('change', render);
+render();
+</script>
+
+</body>
+</html>
